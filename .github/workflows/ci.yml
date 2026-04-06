@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -e ".[dev]"
+      - name: Ruff lint
+        working-directory: backend
+        run: ruff check src/ tests/
+      - name: Ruff format check
+        working-directory: backend
+        run: ruff format --check src/ tests/
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -e ".[dev]"
+      - name: mypy
+        working-directory: backend
+        run: mypy src/ --ignore-missing-imports
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: callscreen_test
+          POSTGRES_USER: callscreen
+          POSTGRES_PASSWORD: callscreen
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://callscreen:callscreen@localhost:5432/callscreen_test
+      REDIS_URL: redis://localhost:6379/0
+      CALLSCREEN_ENV: development
+      CALLSCREEN_SECRET_KEY: ci-test-secret-key-not-for-production
+      CALLSCREEN_ENCRYPTION_KEY: Y2hhbmdlLW1lLXRvLWEtcmVhbC1rZXk=
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -e ".[dev]"
+      - name: Run tests
+        working-directory: backend
+        run: pytest --cov=callscreen --cov-report=xml -v
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/coverage.xml
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -e ".[dev]"
+      - name: Bandit security scan
+        working-directory: backend
+        run: bandit -r src/ -c pyproject.toml --severity-level medium || true
+      - name: Safety dependency audit
+        working-directory: backend
+        run: safety check || true

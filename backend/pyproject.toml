@@ -1,0 +1,122 @@
+[project]
+name = "callscreen"
+version = "0.1.0"
+description = "AI-powered call screening system for landlines"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [
+    { name = "SalishForge", email = "dev@salishforge.com" },
+]
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic[email]>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    # Database
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "redis[hiredis]>=5.2.0",
+    # Telephony
+    "twilio>=9.4.0",
+    # AI / LLM
+    "litellm>=1.55.0",
+    # STT / TTS
+    "deepgram-sdk>=3.8.0",
+    "elevenlabs>=1.15.0",
+    # Task queue
+    "celery[redis]>=5.4.0",
+    # Security
+    "python-jose[cryptography]>=3.3.0",
+    "bcrypt>=4.2.0",
+    "cryptography>=44.0.0",
+    # Storage
+    "boto3>=1.35.0",
+    # Messaging
+    "sendgrid>=6.11.0",
+    # MCP
+    "mcp>=1.2.0",
+    # Utilities
+    "httpx>=0.28.0",
+    "python-multipart>=0.0.18",
+]
+
+[project.optional-dependencies]
+messaging = [
+    "python-telegram-bot>=21.8",
+    "discord.py>=2.4.0",
+]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.28.0",
+    "factory-boy>=3.3.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "bandit>=1.8.0",
+    "safety>=3.2.0",
+    "pre-commit>=4.0.0",
+    "detect-secrets>=1.5.0",
+]
+
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "SIM", "TCH"]
+ignore = ["S101"]  # Allow assert in tests
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S106"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "celery.*",
+    "twilio.*",
+    "litellm.*",
+    "deepgram.*",
+    "elevenlabs.*",
+    "boto3.*",
+    "botocore.*",
+    "sendgrid.*",
+    "redis.*",
+    "passlib.*",
+    "jose.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]
+addopts = "--strict-markers -ra"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests (require services)",
+    "e2e: End-to-end tests",
+]
+
+[tool.coverage.run]
+source = ["callscreen"]
+omit = ["*/tests/*", "*/alembic/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
