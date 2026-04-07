@@ -1,8 +1,24 @@
 # CallScreen
 
-AI-powered call screening for landlines. Built to protect elderly users from spam, scams, and robocalls while ensuring legitimate callers always get through.
+> **Alpha -- not yet tested with live calls.** The core architecture, API surface, and test suite are in place but this project has not been validated in a real-world telephony environment. Expect breaking changes, missing edge-case handling, and incomplete integrations. Contributions and issue reports are welcome.
 
-CallScreen sits between your phone number (via Twilio) and your actual phone. Incoming calls are triaged against a whitelist/blocklist, unknown callers are screened, and approved calls are forwarded to your phone, SIP endpoint, or multiple devices simultaneously.
+An open-source, self-hosted AI call screening and filtering system that blocks nuisance calls, robocalls, phone scams, and telemarketers before they ever ring your phone. Designed for landlines and VoIP lines -- especially for protecting elderly and vulnerable users who are disproportionately targeted by phone fraud.
+
+CallScreen intercepts incoming calls via Twilio, automatically identifies known contacts, rejects blocked numbers, screens unknown callers with an AI-powered answering service, and forwards approved calls to your real phone, SIP extension, or multiple devices simultaneously.
+
+## Why CallScreen
+
+Millions of unwanted calls reach landlines every day -- spam, scams, spoofed numbers, and aggressive telemarketers. The people most harmed are often the least equipped to deal with them: elderly parents, grandparents, and anyone who still depends on a landline as their primary phone.
+
+Existing solutions (carrier-level blocking, Nomorobo, call-blocking devices) catch some robocalls but miss live-caller scams, spoofed local numbers, and social engineering attacks. CallScreen takes a different approach:
+
+- **Intercept everything.** Every call passes through screening before reaching the phone.
+- **Whitelist the people who matter.** Known contacts ring through instantly with zero delay.
+- **Screen the rest.** Unknown callers hear an automated greeting and must press a button or speak to a live AI to prove they're human and state their purpose.
+- **Block the bad actors.** Blocked numbers, community-reported spam, and low-trust callers are silently rejected.
+- **Notify the caretaker.** Family members or caregivers get real-time alerts and daily digests about who called, what they wanted, and whether anything needs attention.
+
+The result: the phone only rings for calls that should ring.
 
 ## How It Works
 
@@ -16,29 +32,51 @@ Incoming Call → Twilio → CallScreen → Triage
 ```
 
 1. **Port your number** (or set up call forwarding) to a Twilio phone number
-2. **CallScreen intercepts** every call and checks your contact lists
+2. **CallScreen intercepts** every incoming call and checks your contact lists
 3. **Known callers** ring through immediately; blocked callers get rejected
 4. **Unknown callers** hear a screening prompt and press 1 to connect or 2 to leave a message
 5. **Approved calls forward** to your real phone number, SIP endpoint (UniFi Talk, FreePBX), or ring multiple devices at once
 
 ## Features
 
-- **Whitelist/blocklist** with instant triage (zero-delay forwarding for known callers)
-- **STIR/SHAKEN attestation** for caller ID verification
-- **Configurable forwarding** -- PSTN phone, SIP URI, or simultaneous ring
-- **Voicemail** with encrypted recording storage (MinIO/S3)
-- **Number intelligence** via Twilio Lookup v2 (carrier, CNAM, line type)
-- **Community reporting** for crowdsourced spam detection
-- **Trust scoring** combining STIR/SHAKEN, carrier data, and community reports
-- **AI persona engine** for conversational call screening (LiteLLM-backed)
-- **Multi-channel notifications** -- email, SMS, Telegram, Discord
-- **Caretaker mode** with message forking and daily digests
-- **Emergency callback passthrough** (911 callbacks always ring through)
-- **Quiet hours** with timezone-aware scheduling
-- **Real-time WebSocket** media streaming for voice AI
-- **MCP server** for tool-use integration with AI assistants
+### Call Filtering and Blocking
+- **Whitelist/blocklist** with instant triage -- zero-delay forwarding for known contacts
+- **STIR/SHAKEN attestation** for caller ID verification and spoof detection
+- **Number intelligence** via Twilio Lookup v2 -- carrier name, CNAM, line type (mobile/landline/VoIP)
+- **Community spam reporting** -- crowdsourced database of known scam and nuisance numbers
+- **Composite trust scoring** combining STIR/SHAKEN, carrier data, call patterns, and community reports
+- **Emergency callback passthrough** -- 911 and emergency service callbacks always ring through immediately
+
+### AI-Powered Answering and Screening
+- **AI voice screening** -- conversational agent answers unknown calls, asks the caller's name and purpose, and decides whether to connect or take a message
+- **Customizable AI personas** -- configure the screening agent's personality and strictness level
+- **LLM-backed intent classification** -- uses Claude, GPT, or any LiteLLM-compatible model to assess caller intent
+- **Speech-to-text and text-to-speech** -- real-time voice pipeline with Deepgram STT and ElevenLabs TTS
+- **DTMF fallback** -- callers can always press 1 to connect or 2 for voicemail, even without AI screening
+
+### Call Forwarding and Routing
+- **Configurable forwarding** -- forward approved calls to a PSTN phone number, SIP URI, or multiple endpoints
+- **SIP integration** -- direct forwarding to VoIP systems (UniFi Talk, FreePBX, Asterisk, any SIP PBX)
+- **Simultaneous ring** -- ring your cell phone, desk phone, and SIP extension at once; first pickup wins
+- **Per-user settings** -- each protected user can have their own forwarding rules, greeting, and screening strictness
+- **Quiet hours** -- timezone-aware scheduling to suppress non-emergency calls overnight
+
+### Notifications and Caretaker Support
+- **Multi-channel notifications** -- call alerts via email, SMS, Telegram, or Discord
+- **Caretaker mode** -- forward call summaries and voicemail transcripts to a family member or caregiver
+- **Daily digests** -- scheduled summary of all calls, screened callers, and blocked attempts
+- **Voicemail** with encrypted recording storage and background transcription
+
+### Self-Hosted and Extensible
+- **Fully self-hosted** -- runs on your own server, no third-party call data collection
+- **Docker Compose deployment** -- single command to start all 6 services
+- **REST API** with JWT authentication and role-based access control
+- **Real-time WebSocket** media streaming for voice AI integration
+- **MCP server** for tool-use integration with AI assistants (Claude Desktop, etc.)
 
 ## Quick Start
+
+> **Status: Alpha.** The steps below will deploy CallScreen, but live telephony integration has not yet been validated end-to-end. Start with a Twilio trial account for testing.
 
 ### Prerequisites
 
@@ -223,6 +261,28 @@ docker/
   Dockerfile.frontend
   .env.example
 ```
+
+## Project Status
+
+This is an **alpha-stage** project. The following is implemented and unit-tested but not yet validated with live telephony:
+
+| Component | Status |
+|-----------|--------|
+| Call triage (whitelist/blocklist/screen) | Built, unit-tested |
+| TwiML generation and webhook handlers | Built, unit-tested |
+| Configurable forwarding (phone/SIP/simultaneous) | Built, unit-tested |
+| Number intelligence and trust scoring | Built, unit-tested |
+| AI persona screening engine | Built, unit-tested |
+| Voice pipeline (STT/TTS/WebSocket) | Built, unit-tested |
+| Multi-channel messaging and notifications | Built, unit-tested |
+| Caretaker forking and daily digests | Built, unit-tested |
+| Docker Compose deployment | Built, runs locally |
+| End-to-end live call testing | **Not yet done** |
+| Frontend dashboard | Scaffold only |
+| Alembic database migrations | Not yet generated |
+| Production hardening and load testing | Not yet done |
+
+Contributions, testing, and feedback are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
