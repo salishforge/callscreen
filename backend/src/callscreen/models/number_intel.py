@@ -4,7 +4,7 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Enum, Float, Integer, String
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from callscreen.models.base import Base, UUIDPrimaryKeyMixin
