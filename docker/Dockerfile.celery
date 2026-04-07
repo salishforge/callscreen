@@ -10,10 +10,10 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-COPY backend/pyproject.toml ./
+# Copy full backend and install
 COPY backend/ ./
 
-RUN pip install --no-cache-dir -e ".[messaging]"
+RUN pip install --no-cache-dir ".[messaging]"
 
 RUN chown -R appuser:appuser /app
 USER appuser

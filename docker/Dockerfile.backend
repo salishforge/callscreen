@@ -12,13 +12,10 @@ FROM base AS builder
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-COPY backend/pyproject.toml ./
-RUN pip install --no-cache-dir -e ".[messaging]" 2>/dev/null || \
-    pip install --no-cache-dir .
-
+# Copy full backend (pyproject.toml + source) and install
 COPY backend/ ./
 
-RUN pip install --no-cache-dir -e ".[messaging]"
+RUN pip install --no-cache-dir ".[messaging]"
 
 FROM base AS production
 

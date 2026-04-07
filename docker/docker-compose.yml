@@ -54,7 +54,7 @@ services:
       POSTGRES_USER: callscreen
       POSTGRES_PASSWORD: callscreen
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
