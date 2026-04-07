@@ -23,10 +23,11 @@ ENV/
 
 # Environment
 .env
-.env.local
-.env.production
+*.env
 !.env.example
 !docker/.env.example
+.env.local
+.env.production
 
 # Database
 *.db
@@ -61,3 +62,8 @@ logs/
 
 # MinIO data
 minio-data/
+
+# Agent / AI tooling artifacts
+.agent_results/
+.agent_tasks/
+.claude/
