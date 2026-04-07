@@ -1,5 +1,7 @@
 """User settings endpoints."""
 
+from datetime import time
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,6 +51,10 @@ async def update_settings(
         db.add(settings)
 
     for field, value in data.model_dump(exclude_unset=True).items():
+        # Convert HH:MM strings to time objects for DB Time columns
+        if field in ("quiet_hours_start", "quiet_hours_end") and isinstance(value, str):
+            h, m = value.split(":")
+            value = time(int(h), int(m))
         setattr(settings, field, value)
 
     await db.flush()

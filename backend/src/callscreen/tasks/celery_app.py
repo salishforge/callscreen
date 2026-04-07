@@ -26,6 +26,10 @@ app.conf.update(
             "task": "callscreen.tasks.scheduled.sync_blocklists",
             "schedule": 86400.0,  # daily
         },
+        "send-daily-digests": {
+            "task": "callscreen.tasks.scheduled.send_daily_digests",
+            "schedule": 86400.0,  # daily
+        },
     },
 )
 

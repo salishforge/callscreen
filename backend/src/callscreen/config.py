@@ -35,8 +35,45 @@ class Settings(BaseSettings):
     # Twilio
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
+    twilio_api_key_sid: str = ""
+    twilio_api_key_secret: str = ""
     twilio_phone_number: str = ""
     twilio_webhook_base_url: str = ""
+
+    # Call Forwarding
+    callscreen_forward_number: str = ""
+    callscreen_forward_sip_uri: str = ""
+    callscreen_forward_timeout: int = 30
+    callscreen_simultaneous_ring: str = ""  # comma-separated E.164 numbers
+
+    @property
+    def twilio_api_credentials(self) -> tuple[str, str]:
+        """Return (username, password) for Twilio REST API calls.
+
+        Prefers API Key auth (SK prefix) when available, falls back to
+        Account SID + Auth Token.
+        """
+        if self.twilio_api_key_sid and self.twilio_api_key_secret:
+            return (self.twilio_api_key_sid, self.twilio_api_key_secret)
+        return (self.twilio_account_sid, self.twilio_auth_token)
+
+    @property
+    def forward_destination(self) -> str:
+        """Primary forwarding destination (phone number or SIP URI).
+
+        Falls back to twilio_phone_number if no explicit forwarding
+        destination is configured (backward-compatible).
+        """
+        if self.callscreen_forward_sip_uri:
+            return self.callscreen_forward_sip_uri
+        return self.callscreen_forward_number or self.twilio_phone_number
+
+    @property
+    def simultaneous_ring_numbers(self) -> list[str]:
+        """List of additional numbers to ring simultaneously."""
+        if not self.callscreen_simultaneous_ring:
+            return []
+        return [n.strip() for n in self.callscreen_simultaneous_ring.split(",") if n.strip()]
 
     # AI Providers
     anthropic_api_key: str = ""

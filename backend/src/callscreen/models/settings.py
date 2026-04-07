@@ -1,12 +1,20 @@
 """User settings model."""
 
+import enum
 import uuid
 from datetime import time
 
-from sqlalchemy import Boolean, Enum, ForeignKey, JSON, String, Text, Time
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer, JSON, String, Text, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from callscreen.models.base import GUID, Base, TimestampMixin, UUIDPrimaryKeyMixin
+
+
+class ForwardMode(str, enum.Enum):
+    """Call forwarding mode."""
+    PHONE = "phone"          # Forward to PSTN phone number (E.164)
+    SIP = "sip"              # Forward to SIP URI (e.g., UniFi Talk)
+    SIMULTANEOUS = "simultaneous"  # Ring multiple endpoints at once
 
 
 class UserSettings(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -30,5 +38,23 @@ class UserSettings(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     caretaker_fork_priority: Mapped[str] = mapped_column(String(20), default="urgent")
     persona_preferences: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     screening_strictness: Mapped[str] = mapped_column(String(20), default="moderate")
+
+    # Call forwarding configuration
+    forward_mode: Mapped[str] = mapped_column(
+        String(20), default=ForwardMode.PHONE.value
+    )
+    forward_phone_number: Mapped[str] = mapped_column(
+        String(20), default="", doc="Primary PSTN forwarding destination (E.164)"
+    )
+    forward_sip_uri: Mapped[str] = mapped_column(
+        String(255), default="", doc="SIP URI for VoIP forwarding (e.g., sip:user@pbx.local)"
+    )
+    forward_timeout: Mapped[int] = mapped_column(
+        Integer, default=30, doc="Seconds to ring before going to voicemail"
+    )
+    simultaneous_ring_numbers: Mapped[str] = mapped_column(
+        String(500), default="",
+        doc="Comma-separated E.164 numbers to ring simultaneously",
+    )
 
     user = relationship("User", back_populates="settings", foreign_keys=[user_id])

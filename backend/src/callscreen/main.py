@@ -82,4 +82,9 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
 
+    # WebSocket endpoints
+    from callscreen.api.ws.media_stream import ws_router
+
+    app.include_router(ws_router)
+
     return app

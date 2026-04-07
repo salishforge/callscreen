@@ -3,6 +3,7 @@
 from callscreen.models.audit import AuditLog
 from callscreen.models.base import Base
 from callscreen.models.call import CallRecord
+from callscreen.models.community_report import CommunityReport
 from callscreen.models.contact import Contact
 from callscreen.models.message import Message, MessageDelivery
 from callscreen.models.number_intel import NumberIntel
@@ -15,6 +16,7 @@ __all__ = [
     "User",
     "Contact",
     "CallRecord",
+    "CommunityReport",
     "Message",
     "MessageDelivery",
     "NumberIntel",
